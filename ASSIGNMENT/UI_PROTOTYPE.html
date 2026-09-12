@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<!-- PROTOTYPE ONLY — NOT CONNECTED TO DATABASE -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPCRMS — Smart Patient & Clinical Record Management System</title>
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #0077B6;
+    --primary-dark: #005F8E;
+    --accent: #ADE8F4;
+    --accent-light: #E0F7FA;
+    --text: #1A1A2E;
+    --text-muted: #6B7280;
+    --bg: #F8FAFC;
+    --white: #FFFFFF;
+    --border: #D1D5DB;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+    --sidebar-w: 240px;
+    --header-h: 60px;
+    --radius: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  }
+  html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; color: var(--text); background: var(--bg); }
+
+  /* ===== LAYOUT ===== */
+  .layout { display: flex; height: 100vh; }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    width: var(--sidebar-w); background: var(--primary); color: var(--white);
+    display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto;
+  }
+  .sidebar-logo {
+    padding: 18px 20px; font-size: 15px; font-weight: 700; letter-spacing: 0.3px;
+    border-bottom: 1px solid rgba(255,255,255,0.15); line-height: 1.3;
+  }
+  .sidebar-logo span { display: block; font-size: 11px; font-weight: 400; opacity: 0.7; margin-top: 2px; }
+  .sidebar-nav { flex: 1; padding: 10px 0; }
+  .nav-section { padding: 14px 16px 6px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.55; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 20px;
+    cursor: pointer; font-size: 13.5px; border-left: 3px solid transparent;
+    transition: background 0.15s, border-color 0.15s; opacity: 0.85;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.1); opacity: 1; }
+  .nav-item.active { background: rgba(255,255,255,0.18); border-left-color: var(--accent); opacity: 1; font-weight: 600; }
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+  .sidebar-footer { padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.15); font-size: 12px; opacity: 0.7; }
+
+  /* ===== MAIN AREA ===== */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar {
+    height: var(--header-h); background: var(--white); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
+    flex-shrink: 0; box-shadow: var(--shadow);
+  }
+  .topbar-title { font-size: 17px; font-weight: 600; color: var(--primary); }
+  .topbar-user { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-muted); }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; }
+  .content { flex: 1; overflow-y: auto; padding: 24px; }
+
+  /* ===== CARDS & PANELS ===== */
+  .card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 15px; color: var(--primary); display: flex; align-items: center; justify-content: space-between; }
+  .card-body { padding: 20px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  /* ===== STAT TILES ===== */
+  .stat-tile { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 16px; }
+  .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .stat-icon.blue { background: var(--accent-light); }
+  .stat-icon.green { background: #D1FAE5; }
+  .stat-icon.amber { background: #FEF3C7; }
+  .stat-icon.red { background: #FEE2E2; }
+  .stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 2px; }
+  .stat-value { font-size: 28px; font-weight: 700; color: var(--text); }
+  .stat-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ===== FORMS ===== */
+  .form-group { margin-bottom: 16px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  label { display: block; font-size: 12.5px; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.3px; }
+  input[type=text], input[type=email], input[type=date], input[type=tel], input[type=number], input[type=time], select, textarea {
+    width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 13.5px; color: var(--text); background: var(--white); transition: border-color 0.15s;
+    font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,119,182,0.12); }
+  textarea { resize: vertical; min-height: 80px; }
+  .required::after { content: ' *'; color: var(--danger); }
+
+  /* ===== BUTTONS ===== */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 6px; font-size: 13.5px; font-weight: 600; cursor: pointer; border: none; transition: background 0.15s; font-family: inherit; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-secondary { background: var(--white); color: var(--primary); border: 1.5px solid var(--primary); }
+  .btn-secondary:hover { background: var(--accent-light); }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+
+  /* ===== BADGES ===== */
+  .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+  .badge-blue { background: var(--accent-light); color: var(--primary); }
+  .badge-green { background: #D1FAE5; color: #065F46; }
+  .badge-amber { background: #FEF3C7; color: #92400E; }
+  .badge-red { background: #FEE2E2; color: #991B1B; }
+  .badge-gray { background: #F3F4F6; color: #374151; }
+
+  /* ===== TABLES ===== */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #F1F5F9; text-align: left; padding: 10px 14px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #F8FAFC; }
+
+  /* ===== TABS ===== */
+  .tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 20px; }
+  .tab { padding: 10px 18px; cursor: pointer; font-size: 13.5px; font-weight: 500; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+  .tab:hover { color: var(--primary); }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+
+  /* ===== SEARCH BAR ===== */
+  .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+  .search-bar input { flex: 1; }
+
+  /* ===== TIMELINE ===== */
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--accent); }
+  .timeline-item { position: relative; margin-bottom: 20px; }
+  .timeline-dot { position: absolute; left: -24px; top: 4px; width: 14px; height: 14px; border-radius: 50%; background: var(--primary); border: 2px solid var(--white); box-shadow: 0 0 0 2px var(--primary); }
+  .timeline-date { font-size: 11.5px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .timeline-content { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
+
+  /* ===== CALENDAR ===== */
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal-header { text-align: center; font-size: 11px; font-weight: 700; color: var(--text-muted); padding: 6px 0; text-transform: uppercase; }
+  .cal-day { min-height: 64px; border: 1px solid var(--border); border-radius: 6px; padding: 6px; background: var(--white); font-size: 12px; }
+  .cal-day.today { border-color: var(--primary); background: var(--accent-light); }
+  .cal-day.has-apt { cursor: pointer; }
+  .cal-day .day-num { font-weight: 600; color: var(--text-muted); margin-bottom: 4px; }
+  .cal-day.today .day-num { color: var(--primary); }
+  .cal-slot { background: var(--primary); color: #fff; border-radius: 4px; padding: 2px 5px; font-size: 10.5px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cal-slot.green { background: var(--success); }
+  .cal-slot.amber { background: var(--warning); color: #fff; }
+
+  /* ===== VITAL SIGNS GRID ===== */
+  .vitals-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+  .vital-box { background: var(--accent-light); border-radius: 8px; padding: 12px; text-align: center; }
+  .vital-label { font-size: 11px; font-weight: 600; color: var(--primary); text-transform: uppercase; letter-spacing: 0.3px; }
+  .vital-val { font-size: 22px; font-weight: 700; color: var(--text); margin: 4px 0 2px; }
+  .vital-unit { font-size: 11px; color: var(--text-muted); }
+
+  /* ===== DRUG ROW ===== */
+  .drug-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; margin-bottom: 12px; padding: 12px; background: #F8FAFC; border-radius: 6px; border: 1px solid var(--border); }
+  .drug-row .form-group { margin-bottom: 0; }
+
+  /* ===== SCREEN VISIBILITY ===== */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ===== PRINT PRESCRIPTION ===== */
+  .rx-print { border: 2px solid var(--border); border-radius: var(--radius); padding: 24px; max-width: 600px; }
+  .rx-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid var(--primary); }
+  .rx-symbol { font-size: 36px; color: var(--primary); font-weight: 700; }
+
+  /* ===== PROTOTYPE BADGE ===== */
+  .proto-banner { background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 6px; padding: 10px 16px; font-size: 12.5px; color: #92400E; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+
+  /* ===== ROLE TAG ===== */
+  .role-tag { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      🏥 SPCRMS
+      <span>Smart Patient & Clinical Records</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Overview</div>
+      <div class="nav-item active" onclick="show('dashboard', this)">
+        <span class="nav-icon">📊</span> Dashboard
+      </div>
+
+      <div class="nav-section">Patients</div>
+      <div class="nav-item" onclick="show('patient-reg', this)">
+        <span class="nav-icon">➕</span> Register Patient
+      </div>
+      <div class="nav-item" onclick="show('patient-search', this)">
+        <span class="nav-icon">🔍</span> Patient Search
+      </div>
+
+      <div class="nav-section">Scheduling</div>
+      <div class="nav-item" onclick="show('appointments', this)">
+        <span class="nav-icon">📅</span> Appointments
+      </div>
+
+      <div class="nav-section">Clinical</div>
+      <div class="nav-item" onclick="show('diagnosis', this)">
+        <span class="nav-icon">🩺</span> Diagnosis Entry
+      </div>
+      <div class="nav-item" onclick="show('prescription', this)">
+        <span class="nav-icon">💊</span> Prescriptions
+      </div>
+      <div class="nav-item" onclick="show('lab', this)">
+        <span class="nav-icon">🔬</span> Lab Investigations
+      </div>
+      <div class="nav-item" onclick="show('clinical-records', this)">
+        <span class="nav-icon">📋</span> Clinical Records
+      </div>
+
+      <div class="nav-section">Admin</div>
+      <div class="nav-item" onclick="show('user-management', this)">
+        <span class="nav-icon">👥</span> User Management
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      Term 1 — PostgreSQL<br>BITS Pilani DBMS Assignment
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-title" id="page-title">Dashboard</div>
+      <div class="topbar-user">
+        <span>Dr. Admin User</span>
+        <div class="avatar">AU</div>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- ========== SCREEN 1: DASHBOARD ========== -->
+      <div id="dashboard" class="screen active">
+        <div class="proto-banner">⚠️ PROTOTYPE ONLY — NOT CONNECTED TO DATABASE. All data shown is static.</div>
+
+        <div class="grid-4" style="margin-bottom:24px;">
+          <div class="stat-tile">
+            <div class="stat-icon blue">🧑‍🤝‍🧑</div>
+            <div>
+              <div class="stat-label">Total Patients</div>
+              <div class="stat-value">3,842</div>
+              <div class="stat-sub">+12 this week</div>
+            </div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-icon green">📅</div>
+            <div>
+              <div class="stat-label">Today's Appointments</div>
+              <div class="stat-value">47</div>
+              <div class="stat-sub">8 pending check-in</div>
+            </div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-icon amber">🔬</div>
+            <div>
+              <div class="stat-label">Pending Lab Orders</div>
+              <div class="stat-value">23</div>
+              <div class="stat-sub">3 urgent</div>
+            </div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-icon red">⚠️</div>
+            <div>
+              <div class="stat-label">Abnormal Results</div>
+              <div class="stat-value">7</div>
+              <div class="stat-sub">Require review</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">Today's Appointments</div>
+            <div class="card-body" style="padding:0;">
+              <table>
+                <thead><tr><th>Time</th><th>Patient</th><th>Doctor</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td>09:00</td><td>Rahul Sharma</td><td>Dr. Priya Nair</td><td><span class="badge badge-green">Completed</span></td></tr>
+                  <tr><td>09:30</td><td>Meena Patel</td><td>Dr. Arjun Mehta</td><td><span class="badge badge-blue">Checked In</span></td></tr>
+                  <tr><td>10:00</td><td>Suresh Kumar</td><td>Dr. Priya Nair</td><td><span class="badge badge-gray">Scheduled</span></td></tr>
+                  <tr><td>10:30</td><td>Ananya Singh</td><td>Dr. Ravi Krishnan</td><td><span class="badge badge-amber">Confirmed</span></td></tr>
+                  <tr><td>11:00</td><td>Vikram Reddy</td><td>Dr. Arjun Mehta</td><td><span class="badge badge-gray">Scheduled</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">Urgent Lab Orders</div>
+            <div class="card-body" style="padding:0;">
+              <table>
+                <thead><tr><th>Patient</th><th>Test</th><th>Ordered At</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td>Meena Patel</td><td>CBC, CRP</td><td>09:35</td><td><span class="badge badge-red">Urgent</span></td></tr>
+                  <tr><td>Raj Iyer</td><td>LFT, RFT</td><td>08:20</td><td><span class="badge badge-amber">Processing</span></td></tr>
+                  <tr><td>Pooja Desai</td><td>HbA1c</td><td>07:55</td><td><span class="badge badge-green">Resulted</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== SCREEN 2: PATIENT REGISTRATION ========== -->
+      <div id="patient-reg" class="screen">
+        <div class="proto-banner">⚠️ PROTOTYPE ONLY — Form submission is not functional.</div>
+        <div class="card">
+          <div class="card-header">New Patient Registration</div>
+          <div class="card-body">
+            <h4 style="color:var(--primary);font-size:13px;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;">Personal Information</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="required">First Name</label>
+                <input type="text" placeholder="e.g. Rahul" required>
+              </div>
+              <div class="form-group">
+                <label class="required">Last Name</label>
+                <input type="text" placeholder="e.g. Sharma" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="required">Date of Birth</label>
+                <input type="date" required>
+              </div>
+              <div class="form-group">
+                <label class="required">Gender</label>
+                <select required>
+                  <option value="">— Select —</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="required">National ID</label>
+                <input type="text" placeholder="e.g. AADHAAR / Passport No." required>
+              </div>
+              <div class="form-group">
+                <label>Blood Group</label>
+                <select>
+                  <option value="">— Select —</option>
+                  <option>A+</option><option>A-</option>
+                  <option>B+</option><option>B-</option>
+                  <option>O+</option><option>O-</option>
+                  <option>AB+</option><option>AB-</option>
+                </select>
+              </div>
+            </div>
+
+            <hr style="border:none;border-top:1px solid var(--border);margin:20px 0;">
+            <h4 style="color:var(--primary);font-size:13px;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;">Contact Information</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="required">Phone Number</label>
+                <input type="tel" placeholder="+91 98765 43210" required>
+              </div>
+              <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" placeholder="patient@email.com">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Residential Address</label>
+              <textarea placeholder="Street, City, State, PIN Code" rows="2"></textarea>
+            </div>
+
+            <hr style="border:none;border-top:1px solid var(--border);margin:20px 0;">
+            <h4 style="color:var(--primary);font-size:13px;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;">Emergency Contact</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Emergency Contact Name</label>
+                <input type="text" placeholder="Full name">
+              </div>
+              <div class="form-group">
+                <label>Emergency Contact Phone</label>
+                <input type="tel" placeholder="+91 98765 00000">
+              </div>
+            </div>
+
+            <div class="btn-group">
+              <button class="btn btn-primary" onclick="alert('PROTOTYPE: Patient record would be saved to the database.')">Register Patient</button>
+              <button class="btn btn-secondary">Clear Form</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== SCREEN 3: PATIENT SEARCH & PROFILE ========== -->
+      <div id="patient-search" class="screen">
+        <div class="proto-banner">⚠️ PROTOTYPE ONLY — Search results are static demo data.</div>
+
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-body" style="padding:16px 20px;">
+            <div class="search-bar" style="margin-bottom:0;">
+              <input type="text" placeholder="Search by name, national ID, or phone number..." value="Rahul Sharma">
+              <button class="btn btn-primary">Search</button>
+              <button class="btn btn-secondary">Advanced</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="align-items:start;">
+          <!-- Search Results -->
+          <div class="card">
+            <div class="card-header">Search Results <span class="badge badge-blue" style="font-size:11px;">3 found</span></div>
+            <div class="card-body" style="padding:0;">
+              <table>
+                <thead><tr><th>Name</th><th>DOB</th><th>ID</th><th></th></tr></thead>
+                <tbody>
+                  <tr style="background:var(--accent-light);">
+                    <td><strong>Rahul Sharma</strong></td>
+                    <td>12 Mar 1985</td>
+                    <td>PAT-00421</td>
+                    <td><button class="btn btn-sm btn-primary" onclick="document.getElementById('patient-profile').style.display='block'">View</button></td>
+                  </tr>
+                  <tr>
+                    <td>Rahul S. Gupta</td>
+                    <td>04 Jul 1990</td>
+                    <td>PAT-01823</td>
+                    <td><button class="btn btn-sm btn-secondary">View</button></td>
+                  </tr>
+                  <tr>
+                    <td>Rahul Sharma (Jr.)</td>
+                    <td>29 Nov 2000</td>
+                    <td>PAT-03102</td>
+                    <td><button class="btn btn-sm btn-secondary">View</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Patient Profile -->
+          <div id="patient-profile" style="display:block;">
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-body" style="display:flex;gap:16px;align-items:center;">
+                <div style="width:56px;height:56px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;flex-shrink:0;">RS</div>
+                <div style="flex:1;">
+                  <div style="font-size:18px;font-weight:700;">Rahul Sharma</div>
+                  <div style="color:var(--text-muted);font-size:13px;margin-top:2px;">PAT-00421 &nbsp;·&nbsp; M &nbsp;·&nbsp; 39 yrs &nbsp;·&nbsp; Blood: B+</div>
+                  <div style="color:var(--text-muted);font-size:12.5px;margin-top:2px;">📱 +91 98765 43210 &nbsp;·&nbsp; 📧 rahul.sharma@email.com</div>
+                </div>
+                <span class="badge badge-green">Active</span>
+              </div>
+            </div>
+            <div class="tabs">
+              <div class="tab active" onclick="switchTab(this,'tab-history')">Visit History</div>
+              <div class="tab" onclick="switchTab(this,'tab-rx')">Prescriptions</div>
+              <div class="tab" onclick="switchTab(this,'tab-labs')">Lab Results</div>
+            </div>
+            <div id="tab-history">
+              <div class="card">
+                <div class="card-body" style="padding:0;">
+                  <table>
+                    <thead><tr><th>Date</th><th>Doctor</th><th>Diagnosis</th><th>Status</th></tr></thead>
+                    <tbody>
+                      <tr><td>10 Sep 2026</td><td>Dr. Priya Nair</td><td>Acute Pharyngitis J02.9</td><td><span class="badge badge-green">Completed</span></td></tr>
+                      <tr><td>03 Jul 2026</td><td>Dr. Arjun Mehta</td><td>Type 2 DM E11.9</td><td><span class="badge badge-green">Completed</span></td></tr>
+                      <tr><td>14 Mar 2026</td><td>Dr. Priya Nair</td><td>Hypertension I10</td><td><span class="badge badge-green">Completed</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div id="tab-rx" style="display:none;">
+              <div class="card"><div class="card-body">
+                <div style="font-weight:600;margin-bottom:8px;">Rx — 10 Sep 2026</div>
+                <div style="color:var(--text-muted);font-size:13px;">1. Amoxicillin 500 mg — Oral — TDS × 5 days</div>
+                <div style="color:var(--text-muted);font-size:13px;">2. Paracetamol 650 mg — Oral — SOS for fever</div>
+              </div></div>
+            </div>
+            <div id="tab-labs" style="display:none;">
+              <div class="card"><div class="card-body">
+                <div style="font-weight:600;margin-bottom:8px;">CBC — 10 Sep 2026</div>
+                <table><thead><tr><th>Test</th><th>Result</th><th>Range</th><th>Flag</th></tr></thead>
+                <tbody>
+                  <tr><td>Haemoglobin</td><td>13.2 g/dL</td><td>13–17</td><td><span class="badge badge-green">Normal</span></td></tr>
+                  <tr><td>WBC</td><td>11.4 ×10³/µL</td><td>4–11</td><td><span class="badge badge-red">High ↑</span></td></tr>
+                  <tr><td>Platelets</td><td>225 ×10³/µL</td><td>150–400</td><td><span class="badge badge-green">Normal</span></td></tr>
+                </tbody></table>
+              </div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== SCREEN 4: APPOINTMENT SCHEDULER ========== -->
+      <div id="appointments" class="screen">
+        <div class="proto-banner">⚠️ PROTOTYPE ONLY — Calendar and booking are static.</div>
+        <div class="grid-2" style="align-items:start;gap:20px;">
+          <!-- Calendar -->
+          <div class="card">
+            <div class="card-header">
+              September 2026
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-sm btn-secondary">‹</button>
+                <button class="btn btn-sm btn-secondary">›</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="cal-grid">
+                <div class="cal-header">Mon</div><div class="cal-header">Tue</div><div class="cal-header">Wed</div>
+                <div class="cal-header">Thu</div><div class="cal-header">Fri</div><div class="cal-header">Sat</div><div class="cal-header">Sun</div>
+                <div class="cal-day"><div class="day-num">1</div></div>
+                <div class="cal-day"><div class="day-num">2</div></div>
+                <div class="cal-day has-apt"><div class="day-num">3</div><div class="cal-slot">09:00 Mehta</div></div>
+                <div class="cal-day"><div class="day-num">4</div></div>
+                <div class="cal-day has-apt"><div class="day-num">5</div><div class="cal-slot green">10:30 Nair</div></div>
+                <div class="cal-day"><div class="day-num">6</div></div>
+                <div class="cal-day"><div class="day-num">7</div></div>
+                <div class="cal-day has-apt"><div class="day-num">8</div><div class="cal-slot">11:00 Mehta</div><div class="cal-slot amber">14:00 KR</div></div>
+                <div class="cal-day"><div class="day-num">9</div></div>
+                <div class="cal-day"><div class="day-num">10</div></div>
+                <div class="cal-day"><div class="day-num">11</div></div>
+                <div class="cal-day today has-apt"><div class="day-num">12</div><div class="cal-slot">09:30 Nair</div><div class="cal-slot">10:00 Mehta</div></div>
+                <div class="cal-day"><div class="day-num">13</div></div>
+                <div class="cal-day"><div class="day-num">14</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Booking Form -->
+          <div class="card">
+            <div class="card-header">Book New Appointment</div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="required">Patient</label>
+                <input type="text" placeholder="Search patient by name or ID…" required>
+              </div>
+              <div class="form-group">
+                <label class="required">Healthcare Professional</label>
+                <select required>
+                  <option value="">— Select —</option>
+                  <option>Dr. Priya Nair (Cardiology)</option>
+                  <option>Dr. Arjun Mehta (General Medicine)</option>
+                  <option>Dr. Ravi Krishnan (Endocrinology)</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="required">Date</label>
+                  <input type="date" value="2026-09-12" required>
+                </div>
+                <div class="form-group">
+                  <label class="required">Time Slot</label>
+                  <select required>
+                    <option value="">— Available slots —</option>
+                    <option>09:00 – 09:30</option>
+                    <option>10:00 – 10:30</option>
+                    <option>11:00 – 11:30</option>
+                    <option>14:00 – 14:30</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="required">Visit Type</label>
+                <select required>
+                  <option>Consultation</option>
+                  <option>Follow-up</option>
+                  <option>Emergency</option>
+                  <option>Review</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Reason for Visit</label>
+                <textarea placeholder="Brief description of chief complaint…" rows="2"></textarea>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-primary" onclick="alert('PROTOTYPE: Appointment would be booked.')">Book Appointment</button>
+                <button class="btn btn-secondary">Clear</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Appointment List -->
+        <div class="card" style="margin-top:20px;">
+          <div class="card-header">Today's Appointment List — 12 Sep 2026</div>
+          <div class="card-body" style="padding:0;">
+            <table>
+              <thead><tr><th>Time</th><th>Patient</th><th>HCP</th><th>Visit Type</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody>
+                <tr><td>09:00</td><td>Rahul Sharma</td><td>Dr. Priya Nair</td><td>Follow-up</td><td><span class="badge badge-green">Completed</span></td><td><button class="btn btn-sm btn-secondary">View</button></td></tr>
+                <tr><td>09:30</td><td>Meena Patel</td><td>Dr. Arjun Mehta</td><td>Consultation</td><td><span class="badge badge-blue">Checked In</span></td><td><button class="btn btn-sm btn-secondary">View</button></td></tr>
+                <tr><td>10:00</td><td>Suresh Kumar</td><td>Dr. Priya Nair</td><td>Review</td><td><span class="badge badge-gray">Scheduled</span></td><td><button class="btn btn-sm btn-secondary" onclick="alert('PROTOTYPE: Would update to Checked In.')">Check In</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== SCREEN 5: DIAGNOSIS ENTRY ========== -->
+      <div id="diagnosis" class="screen">
+        <div class="proto-banner">⚠️ PROTOTYPE ONLY — ICD-10 search is static.</div>
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-header">Active Visit — Meena Patel &nbsp; <span class="badge badge-blue">Checked In</span></div>
+          <div class="card-body" style="padding:12px 20px;display:flex;gap:24px;font-size:13.5px;color:var(--text-muted);">
+            <span><strong>Date:</strong> 12 Sep 2026</span>
+            <span><strong>HCP:</strong> Dr. Arjun Mehta</span>
+            <span><strong>Visit:</strong> Consultation</span>
+            <span><strong>Appointment ID:</strong> APT-002834</span>
+          </div>
+        </div>
+
+        <div class="grid-2" style="align-items:start;">
+          <div class="card">
+            <div class="card-header">ICD-10 Code Lookup</div>
+            <div class="card-body">
+              <div class="search-bar">
+                <input type="text" placeholder="Search by code or description… e.g. 'diabetes'" value="diabetes">
+                <button class="btn btn-primary">Search</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Code</th><th>Description</th><th></th></tr></thead>
+                  <tbody>
+                    <tr><td><strong>E11.9</strong></td><td>Type 2 diabetes mellitus without complications</td><td><button class="btn btn-sm btn-primary" onclick="alert('PROTOTYPE: Code E11.9 added to diagnosis.')">Add</button></td></tr>
+                    <tr><td><strong>E11.65</strong></td><td>Type 2 DM with hyperglycaemia</td><td><button class="btn btn-sm btn-secondary">Add</button></td></tr>
+                    <tr><td><strong>E11.40</strong></td><td>Type 2 DM with diabetic neuropathy, unspecified</td><td><button class="btn btn-sm btn-secondary">Add</button></td></tr>
+                    <tr><td><strong>E10.9</strong></td><td>Type 1 diabetes mellitus without complications</td><td><button class="btn btn-sm btn-secondary">Add</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Diagnoses for This Visit</div>
+            <div class="card-body">
+              <div style="background:var(--accent-light);border-radius:6px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <div style="font-weight:700;font-size:14px;">E11.9</div>
+                  <div style="font-size:13px;color:var(--text-muted);">Type 2 diabetes mellitus without complications</div>
+                </div>
+                <span class="badge badge-blue">Primary</span>
+              </div>
+
+              <div class="form-group">
+                <label class="required">Diagnosis Type</label>
+                <select>
+                  <option>Primary</option>
+                  <option>Secondary</option>
+                  <option>Differential</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Clinical Notes</label>
+                <textarea placeholder="Clinician's notes about this diagnosis…" rows="3">New diagnosis of T2DM. FBS 186 mg/dL, HbA1c pending. Start metformin 500 mg BD. Lifestyle counselling given.</textarea>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-primary" onclick="alert('PROTOTYPE: Diagnosis saved.')">Save Diagnosis</button>
+                <button class="btn btn-secondary">+ Add Another</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== SCREEN 6: PRESCRIPTION WRITER ========== -->
+      <div id="prescription" class="screen">
+        <div class="proto-banner">⚠️ PROTOTYPE ONLY — Prescription is not saved or printed.</div>
+
+        <!-- Print preview -->
+        <div class="grid-2" style="align-items:start;gap:20px;">
+          <div class="card">
+            <div class="card-header">Write Prescription</div>
+            <div class="card-body">
+              <div style="background:#F1F5F9;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:var(--text-muted);">
+                Patient: <strong>Meena Patel</strong> &nbsp;·&nbsp; Visit: APT-002834 &nbsp;·&nbsp; Dr. Arjun Mehta &nbsp;·&nbsp; 12 Sep 2026
+              </div>
+
+              <div id="drug-list">
+                <div class="drug-row">
+                  <div class="form-group"><label class="required">Drug Name</label><input type="text" placeholder="e.g. Metformin" value="Metformin"></div>
+                  <div class="form-group"><label class="required">Dosage</label><input type="text" placeholder="500 mg" value="500 mg"></div>
+                  <div class="form-group"><label>Route</label><select><option>Oral</option><option>IV</option><option>IM</option><option>Topical</option></select></div>
+                  <div class="form-group"><label class="required">Frequency</label><input type="text" placeholder="BD" value="BD"></div>
+                  <div class="form-group"><label>Duration (days)</label><input type="number" placeholder="30" value="30"></div>
+                  <div class="form-group"><label>&nbsp;</label><button class="btn btn-sm btn-danger" onclick="this.closest('.drug-row').remove()">✕</button></div>
+                </div>
+                <div class="drug-row">
+                  <div class="form-group"><label class="required">Drug Name</label><input type="text" placeholder="e.g. Glipizide" value="Glipizide"></div>
+                  <div class="form-group"><label class="required">Dosage</label><input type="text" placeholder="5 mg" value="5 mg"></div>
+                  <div class="form-group"><label>Route</label><select><option>Oral</option></select></div>
+                  <div class="form-group"><label class="required">Frequency</label><input type="text" placeholder="OD" value="OD before breakfast"></div>
+                  <div class="form-group"><label>Duration (days)</label><input type="number" placeholder="30" value="30"></div>
+                  <div class="form-group"><label>&nbsp;</label><button class="btn btn-sm btn-danger" onclick="this.closest('.drug-row').remove()">✕</button></div>
+                </div>
+              </div>
+
+              <button class="btn btn-secondary" style="margin-bottom:16px;" onclick="addDrug()">+ Add Drug</button>
+
+              <div class="form-group">
+                <label>Special Instructions / Notes</label>
+                <textarea placeholder="e.g. Take Metformin with meals. Monitor blood sugar weekly.">Take Metformin with meals. Monitor blood sugar weekly. Return in 4 weeks.</textarea>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-primary" onclick="alert('PROTOTYPE: Prescription saved with status Pending.')">Save Prescription</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('rx-preview').style.display='block'">Preview / Print</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Print Preview -->
+          <div id="rx-preview" style="display:block;">
+            <div class="card">
+              <div class="card-header">Print Preview</div>
+              <div class="card-body">
+                <div class="rx-print">
+                  <div class="rx-header">
+                    <div>
+                      <div style="font-weight:700;font-size:16px;color:var(--primary);">SPCRMS Hospital</div>
+                      <div style="font-size:12px;color:var(--text-muted);">123, Healthcare Avenue, Pilani, Rajasthan</div>
+                      <div style="font-size:12px;color:var(--text-muted);">Tel: +91 1596 000000</div>
+                    </div>
+                    <div class="rx-symbol">℞</div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:14px;">
+                    <div><strong>Patient:</strong> Meena Patel &nbsp; <strong>Age/Sex:</strong> 42F</div>
+                    <div><strong>Date:</strong> 12 Sep 2026</div>
+                  </div>
+                  <div style="font-size:13px;margin-bottom:6px;"><strong>Doctor:</strong> Dr. Arjun Mehta, MBBS MD</div>
+                  <hr style="border:1px dashed var(--border);margin:12px 0;">
+                  <div style="font-size:13px;line-height:2;">
+                    <div>1. <strong>Metformin 500 mg</strong> — Oral — BD × 30 days &nbsp; <em>(Take with meals)</em></div>
+                    <div>2. <strong>Glipizide 5 mg</strong> — Oral — OD before breakfast × 30 days</div>
+                  </div>
+                  <hr style="border:1px dashed var(--border);margin:12px 0;">
+                  <div style="font-size:12px;color:var(--text-muted);">Monitor blood sugar weekly. Return in 4 weeks.</div>
+                  <div style="margin-top:24px;text-align:right;font-size:12px;border-top:1px solid var(--border);padding-top:10px;">
+                    <em>Signature: Dr. Arjun Mehta</em>
+                  </div>
+                </div>
+                <div style="margin-top:12px;">
+                  <button class="btn btn-primary" onclick="alert('PROTOTYPE: Would trigger browser print dialog.')">🖨 Print</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== SCREEN 7: LAB INVESTIGATION ========== -->
+      <div id="lab" class="screen">
+        <div class="proto-banner">⚠️ PROTOTYPE ONLY — Lab orders are not submitted to a database.</div>
+
+        <div class="grid-2" style="align-items:start;gap:20px;">
+          <!-- Order Form -->
+          <div class="card">
+            <div class="card-header">Order Lab Tests</div>
+            <div class="card-body">
+              <div style="background:#F1F5F9;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:13px;">
+                Patient: <strong>Meena Patel</strong> &nbsp;·&nbsp; Appointment: APT-002834
+              </div>
+              <div class="form-group">
+                <label class="required">Select Tests</label>
+                <div style="border:1px solid var(--border);border-radius:6px;padding:12px;background:var(--white);max-height:220px;overflow-y:auto;">
+                  <label style="display:flex;align-items:center;gap:8px;padding:5px 0;text-transform:none;font-weight:400;font-size:13.5px;cursor:pointer;"><input type="checkbox" checked> Complete Blood Count (CBC)</label>
+                  <label style="display:flex;align-items:center;gap:8px;padding:5px 0;text-transform:none;font-weight:400;font-size:13.5px;cursor:pointer;"><input type="checkbox" checked> HbA1c (Glycated Haemoglobin)</label>
+                  <label style="display:flex;align-items:center;gap:8px;padding:5px 0;text-transform:none;font-weight:400;font-size:13.5px;cursor:pointer;"><input type="checkbox"> Fasting Blood Sugar (FBS)</label>
+                  <label style="display:flex;align-items:center;gap:8px;padding:5px 0;text-transform:none;font-weight:400;font-size:13.5px;cursor:pointer;"><input type="checkbox"> Lipid Profile</label>
+                  <label style="display:flex;align-items:center;gap:8px;padding:5px 0;text-transform:none;font-weight:400;font-size:13.5px;cursor:pointer;"><input type="checkbox"> Liver Function Tests (LFT)</label>
+                  <label style="display:flex;align-items:center;gap:8px;padding:5px 0;text-transform:none;font-weight:400;font-size:13.5px;cursor:pointer;"><input type="checkbox"> Renal Function Tests (RFT)</label>
+                  <label style="display:flex;align-items:center;gap:8px;padding:5px 0;text-transform:none;font-weight:400;font-size:13.5px;cursor:pointer;"><input type="checkbox"> Urine Routine Examination</label>
+                  <label style="display:flex;align-items:center;gap:8px;padding:5px 0;text-transform:none;font-weight:400;font-size:13.5px;cursor:pointer;"><input type="checkbox"> Thyroid Stimulating Hormone (TSH)</label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-weight:600;font-size:13px;cursor:pointer;">
+                  <input type="checkbox"> Mark as <strong>Urgent</strong>
+                </label>
+              </div>
+              <div class="form-group">
+                <label>Clinical Notes for Lab</label>
+                <textarea placeholder="Clinical context for the lab team…" rows="2">New T2DM. Check baseline HbA1c and metabolic panel.</textarea>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-primary" onclick="alert('PROTOTYPE: Lab order submitted with status Ordered.')">Submit Order</button>
+                <button class="btn btn-secondary">Clear</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Result Entry -->
+          <div class="card">
+            <div class="card-header">Enter Results — Order LAB-00892</div>
+            <div class="card-body">
+              <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">
+                Patient: <strong>Meena Patel</strong> &nbsp;·&nbsp; Ordered: 09:35 &nbsp;·&nbsp; <span class="badge badge-red">Urgent</span>
+              </div>
+              <div class="form-group">
+                <label>Order Status</label>
+                <select>
+                  <option>Ordered</option>
+                  <option>Specimen Collected</option>
+                  <option selected>Processing</option>
+                  <option>Resulted</option>
+                </select>
+              </div>
+              <table style="margin-bottom:14px;">
+                <thead><tr><th>Test</th><th>Result</th><th>Unit</th><th>Ref Range</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td>HbA1c</td>
+                    <td><input type="text" style="width:80px;padding:5px 8px;" placeholder="0.0" value="8.4"></td>
+                    <td>%</td>
+                    <td>4.0 – 5.6</td>
+                  </tr>
+                  <tr>
+                    <td>WBC</td>
+                    <td><input type="text" style="width:80px;padding:5px 8px;" placeholder="0.0" value="9.2"></td>
+                    <td>×10³/µL</td>
+                    <td>4.0 – 11.0</td>
+                  </tr>
+                  <tr>
+                    <td>Haemoglobin</td>
+                    <td><input type="text" style="width:80px;padding:5px 8px;" placeholder="0.0" value="11.8"></td>
+                    <td>g/dL</td>
+                    <td>12.0 – 16.0</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="form-group">
+                <label>Technician Remarks</label>
+                <textarea rows="2" placeholder="Any remarks about sample quality or processing…"></textarea>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-success" onclick="alert('PROTOTYPE: Results saved. Abnormal flags auto-set for HbA1c and Hb.')">Submit Results</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== SCREEN 8: CLINICAL RECORDS ========== -->
+      <div id="clinical-records" class="screen">
+        <div class="proto-banner">⚠️ PROTOTYPE ONLY — Records are not saved to a database.</div>
+
+        <div class="grid-2" style="align-items:start;gap:20px;">
+          <!-- SOAP Entry -->
+          <div class="card">
+            <div class="card-header">New Clinical Record — SOAP Note</div>
+            <div class="card-body">
+              <div style="background:#F1F5F9;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:13px;">
+                Patient: <strong>Meena Patel</strong> &nbsp;·&nbsp; Visit: APT-002834 &nbsp;·&nbsp; Dr. Arjun Mehta
+              </div>
+
+              <h4 style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:12px;">Vital Signs</h4>
+              <div class="vitals-grid">
+                <div class="vital-box">
+                  <div class="vital-label">Blood Pressure</div>
+                  <div style="display:flex;gap:4px;justify-content:center;align-items:center;margin:4px 0 2px;">
+                    <input type="number" style="width:54px;padding:4px 6px;text-align:center;" placeholder="120" value="138">
+                    <span>/</span>
+                    <input type="number" style="width:54px;padding:4px 6px;text-align:center;" placeholder="80" value="88">
+                  </div>
+                  <div class="vital-unit">mmHg</div>
+                </div>
+                <div class="vital-box">
+                  <div class="vital-label">Heart Rate</div>
+                  <input type="number" style="width:70px;padding:4px 6px;text-align:center;margin:4px auto;display:block;" value="84">
+                  <div class="vital-unit">bpm</div>
+                </div>
+                <div class="vital-box">
+                  <div class="vital-label">Temperature</div>
+                  <input type="number" step="0.1" style="width:70px;padding:4px 6px;text-align:center;margin:4px auto;display:block;" value="37.1">
+                  <div class="vital-unit">°C</div>
+                </div>
+                <div class="vital-box">
+                  <div class="vital-label">SpO₂</div>
+                  <input type="number" step="0.1" style="width:70px;padding:4px 6px;text-align:center;margin:4px auto;display:block;" value="98.5">
+                  <div class="vital-unit">%</div>
+                </div>
+                <div class="vital-box">
+                  <div class="vital-label">Weight</div>
+                  <input type="number" step="0.1" style="width:70px;padding:4px 6px;text-align:center;margin:4px auto;display:block;" value="72.5">
+                  <div class="vital-unit">kg</div>
+                </div>
+                <div class="vital-box">
+                  <div class="vital-label">Height</div>
+                  <input type="number" step="0.1" style="width:70px;padding:4px 6px;text-align:center;margin:4px auto;display:block;" value="162.0">
+                  <div class="vital-unit">cm</div>
+                </div>
+              </div>
+
+              <h4 style="font-size:13px;font-weight:700;color:var(--primary);margin:16px 0 12px;">SOAP Note</h4>
+              <div class="form-group">
+                <label>S — Subjective (Patient's complaint)</label>
+                <textarea rows="2" placeholder="What the patient reports…">Complains of increased thirst and frequent urination for 3 months. No chest pain. Mild fatigue.</textarea>
+              </div>
+              <div class="form-group">
+                <label>O — Objective (Examination findings)</label>
+                <textarea rows="2" placeholder="Clinical examination findings…">BP 138/88 mmHg. HR 84 bpm. Temp 37.1°C. BMI 27.6 (overweight). No pedal oedema. Fundoscopy normal.</textarea>
+              </div>
+              <div class="form-group">
+                <label>A — Assessment (Diagnosis/Impression)</label>
+                <textarea rows="2" placeholder="Clinical assessment…">New diagnosis T2DM (E11.9). Elevated BP likely related. Labs ordered: HbA1c, CBC, LFT, RFT.</textarea>
+              </div>
+              <div class="form-group">
+                <label>P — Plan (Treatment plan)</label>
+                <textarea rows="2" placeholder="Management plan…">Start Metformin 500 mg BD. Lifestyle modification. Dietary counselling. Review in 4 weeks with lab reports.</textarea>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-secondary" onclick="alert('PROTOTYPE: Draft saved.')">Save as Draft</button>
+                <button class="btn btn-primary" onclick="alert('PROTOTYPE: Record finalised — immutable.')">Finalise Record</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Patient Timeline -->
+          <div class="card">
+            <div class="card-header">Clinical Record Timeline — Meena Patel</div>
+            <div class="card-body">
+              <div class="timeline">
+                <div class="timeline-item">
+                  <div class="timeline-dot"></div>
+                  <div class="timeline-date">12 Sep 2026 — Consultation — Dr. Arjun Mehta</div>
+                  <div class="timeline-content">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><strong>New T2DM Diagnosis</strong><span class="badge badge-amber">Draft</span></div>
+                    <div style="font-size:12.5px;color:var(--text-muted);">S: Polyuria, polydipsia 3/12 · O: BP 138/88 · A: E11.9 T2DM</div>
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-dot" style="background:var(--success);box-shadow:0 0 0 2px var(--success);"></div>
+                  <div class="timeline-date">14 Jun 2026 — Follow-up — Dr. Priya Nair</div>
+                  <div class="timeline-content">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><strong>HTN Follow-up</strong><span class="badge badge-green">Finalised</span></div>
+                    <div style="font-size:12.5px;color:var(--text-muted);">BP 132/84 mmHg · Amlodipine 5mg continued · Good compliance</div>
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <div class="timeline-dot" style="background:var(--success);box-shadow:0 0 0 2px var(--success);"></div>
+                  <div class="timeline-date">03 Jan 2026 — Consultation — Dr. Arjun Mehta</div>
+                  <div class="timeline-content">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><strong>Hypertension Dx</strong><span class="badge badge-green">Finalised</span></div>
+                    <div style="font-size:12.5px;color:var(--text-muted);">BP 152/96 mmHg repeatedly · Started Amlodipine 5mg OD · I10</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== SCREEN 9: USER MANAGEMENT (ADMIN ONLY) ========== -->
+      <div id="user-management" class="screen">
+        <div class="proto-banner">⚠️ PROTOTYPE ONLY — Admin view. User operations are not functional.</div>
+        <div style="background:#FEE2E2;border:1px solid var(--danger);border-radius:6px;padding:10px 16px;font-size:12.5px;color:#991B1B;margin-bottom:20px;display:flex;align-items:center;gap:8px;">
+          🔒 This screen is accessible to <strong>Administrators only</strong>. Role-based access control is enforced at the application layer.
+        </div>
+
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-header">
+            System Users
+            <button class="btn btn-sm btn-primary" onclick="alert('PROTOTYPE: Would open Add User form.')">+ Add User</button>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <table>
+              <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Department</th><th>Last Login</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><strong>Dr. Priya Nair</strong></td>
+                  <td>p.nair</td>
+                  <td><span class="role-tag" style="background:#E0F2FE;color:#0369A1;">Doctor</span></td>
+                  <td>Cardiology</td>
+                  <td>12 Sep 2026, 08:45</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><button class="btn btn-sm btn-secondary">Edit</button></td>
+                </tr>
+                <tr>
+                  <td><strong>Dr. Arjun Mehta</strong></td>
+                  <td>a.mehta</td>
+                  <td><span class="role-tag" style="background:#E0F2FE;color:#0369A1;">Doctor</span></td>
+                  <td>General Medicine</td>
+                  <td>12 Sep 2026, 09:10</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><button class="btn btn-sm btn-secondary">Edit</button></td>
+                </tr>
+                <tr>
+                  <td><strong>Sunita Rao</strong></td>
+                  <td>s.rao</td>
+                  <td><span class="role-tag" style="background:#F0FDF4;color:#166534;">Nurse</span></td>
+                  <td>General Ward</td>
+                  <td>12 Sep 2026, 07:55</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><button class="btn btn-sm btn-secondary">Edit</button></td>
+                </tr>
+                <tr>
+                  <td><strong>Kiran Joshi</strong></td>
+                  <td>k.joshi</td>
+                  <td><span class="role-tag" style="background:#FEF9C3;color:#713F12;">Lab Tech</span></td>
+                  <td>Pathology</td>
+                  <td>12 Sep 2026, 08:00</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><button class="btn btn-sm btn-secondary">Edit</button></td>
+                </tr>
+                <tr>
+                  <td><strong>Rekha Verma</strong></td>
+                  <td>r.verma</td>
+                  <td><span class="role-tag" style="background:#F3F4F6;color:#374151;">Receptionist</span></td>
+                  <td>OPD</td>
+                  <td>11 Sep 2026, 17:30</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><button class="btn btn-sm btn-secondary">Edit</button></td>
+                </tr>
+                <tr>
+                  <td><strong>Admin User</strong></td>
+                  <td>admin</td>
+                  <td><span class="role-tag" style="background:#FEE2E2;color:#991B1B;">Admin</span></td>
+                  <td>IT / Management</td>
+                  <td>12 Sep 2026, 08:30</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><button class="btn btn-sm btn-secondary">Edit</button></td>
+                </tr>
+                <tr>
+                  <td style="color:var(--text-muted);">Dr. Suhas Patil</td>
+                  <td style="color:var(--text-muted);">s.patil</td>
+                  <td><span class="role-tag" style="background:#E0F2FE;color:#0369A1;">Doctor</span></td>
+                  <td>Neurology</td>
+                  <td>28 Aug 2026</td>
+                  <td><span class="badge badge-gray">Inactive</span></td>
+                  <td><button class="btn btn-sm btn-success" onclick="alert('PROTOTYPE: Would reactivate account.')">Activate</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Role Permissions Summary -->
+        <div class="card">
+          <div class="card-header">Role Permissions Matrix</div>
+          <div class="card-body" style="padding:0;">
+            <table>
+              <thead><tr><th>Permission</th><th>Admin</th><th>Doctor</th><th>Nurse</th><th>Lab Tech</th><th>Receptionist</th></tr></thead>
+              <tbody>
+                <tr><td>Register Patient</td><td>✅</td><td>—</td><td>✅</td><td>—</td><td>✅</td></tr>
+                <tr><td>View Patient Records</td><td>✅</td><td>✅</td><td>✅</td><td>—</td><td>✅</td></tr>
+                <tr><td>Book Appointment</td><td>✅</td><td>—</td><td>—</td><td>—</td><td>✅</td></tr>
+                <tr><td>Record Diagnosis</td><td>—</td><td>✅</td><td>—</td><td>—</td><td>—</td></tr>
+                <tr><td>Write Prescription</td><td>—</td><td>✅</td><td>—</td><td>—</td><td>—</td></tr>
+                <tr><td>Order Lab Tests</td><td>—</td><td>✅</td><td>—</td><td>—</td><td>—</td></tr>
+                <tr><td>Enter Lab Results</td><td>—</td><td>—</td><td>—</td><td>✅</td><td>—</td></tr>
+                <tr><td>Write Clinical Record</td><td>—</td><td>✅</td><td>✅</td><td>—</td><td>—</td></tr>
+                <tr><td>Manage Users</td><td>✅</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  // ===== NAVIGATION =====
+  const titles = {
+    'dashboard': 'Dashboard',
+    'patient-reg': 'Register Patient',
+    'patient-search': 'Patient Search & Profile',
+    'appointments': 'Appointment Scheduler',
+    'diagnosis': 'Diagnosis Entry',
+    'prescription': 'Prescription Writer',
+    'lab': 'Lab Investigations',
+    'clinical-records': 'Clinical Records',
+    'user-management': 'User Management (Admin)'
+  };
+
+  function show(id, navEl) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    navEl.classList.add('active');
+    document.getElementById('page-title').textContent = titles[id] || id;
+  }
+
+  // ===== TAB SWITCHING (Patient Profile) =====
+  function switchTab(tabEl, targetId) {
+    tabEl.closest('.tabs').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tabEl.classList.add('active');
+    ['tab-history','tab-rx','tab-labs'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = (id === targetId) ? 'block' : 'none';
+    });
+  }
+
+  // ===== ADD DRUG ROW =====
+  function addDrug() {
+    const list = document.getElementById('drug-list');
+    const row = document.createElement('div');
+    row.className = 'drug-row';
+    row.innerHTML = `
+      <div class="form-group"><label class="required">Drug Name</label><input type="text" placeholder="Drug name" required></div>
+      <div class="form-group"><label class="required">Dosage</label><input type="text" placeholder="e.g. 500mg" required></div>
+      <div class="form-group"><label>Route</label><select><option>Oral</option><option>IV</option><option>IM</option><option>Topical</option></select></div>
+      <div class="form-group"><label class="required">Frequency</label><input type="text" placeholder="e.g. BD" required></div>
+      <div class="form-group"><label>Duration (days)</label><input type="number" placeholder="30"></div>
+      <div class="form-group"><label>&nbsp;</label><button class="btn btn-sm btn-danger" onclick="this.closest('.drug-row').remove()">✕</button></div>
+    `;
+    list.appendChild(row);
+  }
+</script>
+</body>
+</html>
