@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SPCRMS — ER Diagram</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #f8fafc;
+      letter-spacing: 0.02em;
+    }
+    header p {
+      margin-top: 0.4rem;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+    .diagram-wrap {
+      background: #1e2130;
+      border: 1px solid #2d3348;
+      border-radius: 12px;
+      padding: 2rem;
+      overflow-x: auto;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      justify-content: center;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+    .legend span {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Smart Patient &amp; Clinical Record Management System</h1>
+    <p>Entity-Relationship Diagram — PostgreSQL Schema v1.0 &nbsp;|&nbsp; BITS Pilani DBMS Term 1</p>
+  </header>
+
+  <div class="diagram-wrap">
+    <div class="mermaid">
+erDiagram
+    users {
+        SERIAL      user_id         PK
+        VARCHAR150  full_name
+        VARCHAR100  username        "UNIQUE"
+        VARCHAR255  password_hash
+        VARCHAR20   role            "Admin|Doctor|Clerk|LabPersonnel"
+        BOOLEAN     is_active       "DEFAULT TRUE"
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ last_login
+    }
+
+    hospital_info {
+        SERIAL      hospital_id     PK
+        VARCHAR200  hospital_name
+        TEXT        address
+        INTEGER     total_beds
+        INTEGER     total_wards
+        INTEGER     updated_by      FK
+        TIMESTAMPTZ updated_at
+    }
+
+    ward {
+        SERIAL      ward_id         PK
+        INTEGER     hospital_id     FK
+        VARCHAR100  ward_name
+        VARCHAR20   ward_type       "ICU|Maternity|Outpatient|InPatient"
+        INTEGER     total_beds
+        NUMERIC     daily_bed_rate
+        INTEGER     updated_by      FK
+        TIMESTAMPTZ updated_at
+    }
+
+    lab_facility {
+        SERIAL      lab_id          PK
+        INTEGER     hospital_id     FK
+        VARCHAR200  test_name
+        VARCHAR100  test_category
+        BOOLEAN     is_available    "DEFAULT TRUE"
+        INTEGER     updated_by      FK
+        TIMESTAMPTZ updated_at
+    }
+
+    equipment {
+        SERIAL      equipment_id    PK
+        INTEGER     hospital_id     FK
+        VARCHAR200  equipment_name
+        VARCHAR50   equipment_type  "Ventilator|Incubator|Other"
+        INTEGER     total_count
+        INTEGER     available_count
+        INTEGER     updated_by      FK
+        TIMESTAMPTZ updated_at
+    }
+
+    patient {
+        SERIAL      patient_id      PK
+        VARCHAR150  full_name
+        DATE        dob
+        VARCHAR20   gender
+        VARCHAR20   phone
+        TEXT        address
+        TEXT        past_diagnosis_history
+        INTEGER     registered_by   FK
+        TIMESTAMPTZ created_at
+    }
+
+    admission {
+        SERIAL      admission_id    PK
+        INTEGER     patient_id      FK
+        VARCHAR20   patient_type    "InPatient|OutPatient"
+        INTEGER     ward_id         FK
+        VARCHAR300  ailment
+        DATE        date_of_admission
+        DATE        date_of_discharge
+        VARCHAR20   status          "Admitted|Discharged"
+        INTEGER     registered_by   FK
+        TIMESTAMPTZ created_at
+    }
+
+    treatment {
+        SERIAL      treatment_id    PK
+        INTEGER     admission_id    FK
+        INTEGER     doctor_id       FK
+        INTEGER     days_advised
+        TEXT        treatment_notes
+        TEXT        iv_fluids
+        TEXT        discharge_instructions
+        BOOLEAN     is_complete     "DEFAULT FALSE"
+        TIMESTAMPTZ treatment_date
+        TIMESTAMPTZ updated_at
+    }
+
+    medicine_item {
+        SERIAL      item_id         PK
+        INTEGER     treatment_id    FK
+        VARCHAR200  medicine_name
+        NUMERIC82   quantity
+        VARCHAR50   unit            "Tablet|ml|mg|vial"
+        NUMERIC102  unit_cost
+    }
+
+    lab_test_order {
+        SERIAL      test_order_id   PK
+        INTEGER     patient_id      FK
+        INTEGER     admission_id    FK
+        INTEGER     lab_id          FK
+        INTEGER     ordered_by      FK
+        DATE        test_date
+        TEXT        result_notes
+        NUMERIC102  charges
+        VARCHAR20   status          "Ordered|Processing|Resulted"
+        INTEGER     updated_by      FK
+        TIMESTAMPTZ updated_at
+    }
+
+    invoice {
+        SERIAL      invoice_id      PK
+        INTEGER     admission_id    FK "UNIQUE"
+        INTEGER     patient_id      FK
+        INTEGER     generated_by    FK
+        NUMERIC122  treatment_charges
+        NUMERIC122  medicine_charges
+        NUMERIC122  lab_charges
+        NUMERIC122  bed_charges
+        NUMERIC122  total_amount
+        VARCHAR20   status          "Draft|Issued|Paid"
+        TIMESTAMPTZ generated_at
+        TIMESTAMPTZ updated_at
+    }
+
+    seminar {
+        SERIAL      seminar_id      PK
+        VARCHAR300  title
+        TEXT        description
+        DATE        conducted_date
+        VARCHAR200  conducted_by
+        NUMERIC122  budget
+        INTEGER     participants_count
+        INTEGER     recorded_by     FK
+        TIMESTAMPTZ created_at
+    }
+
+    %% Hospital hierarchy
+    hospital_info ||--o{ ward          : "has"
+    hospital_info ||--o{ lab_facility  : "catalogues"
+    hospital_info ||--o{ equipment     : "tracks"
+
+    %% Patient flow
+    patient       ||--o{ admission     : "admitted via"
+    ward          ||--o{ admission     : "assigned to"
+
+    %% Clinical records
+    admission     ||--o{ treatment     : "treated in"
+    treatment     ||--o{ medicine_item : "prescribes"
+
+    %% Lab orders
+    patient       ||--o{ lab_test_order : "ordered for"
+    admission     ||--o{ lab_test_order : "linked to"
+    lab_facility  ||--o{ lab_test_order : "uses"
+
+    %% Billing — 1:1
+    admission     ||--|| invoice       : "billed as"
+    patient       ||--o{ invoice       : "invoiced"
+
+    %% Users as actors (admin/update links grouped)
+    users         ||--o{ hospital_info  : "updated_by"
+    users         ||--o{ ward           : "updated_by"
+    users         ||--o{ lab_facility   : "updated_by"
+    users         ||--o{ equipment      : "updated_by"
+    users         ||--o{ patient        : "registered_by"
+    users         ||--o{ admission      : "registered_by"
+    users         ||--o{ treatment      : "doctor"
+    users         ||--o{ lab_test_order : "ordered_by"
+    users         ||--o{ invoice        : "generated_by"
+    users         ||--o{ seminar        : "recorded_by"
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:#6366f1"></span> PK = Primary Key (SERIAL)</span>
+      <span><span class="dot" style="background:#22d3ee"></span> FK = Foreign Key</span>
+      <span><span class="dot" style="background:#f59e0b"></span> ||--|| = One-to-One (invoice ↔ admission)</span>
+      <span><span class="dot" style="background:#10b981"></span> ||--o{ = One-to-Many</span>
+    </div>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      er: {
+        diagramPadding: 30,
+        layoutDirection: 'TB',
+        minEntityWidth: 100,
+        minEntityHeight: 75,
+        entityPadding: 15,
+        useMaxWidth: true
+      },
+      themeVariables: {
+        darkMode: true,
+        background: '#1e2130',
+        primaryColor: '#2d3a5e',
+        primaryTextColor: '#e2e8f0',
+        primaryBorderColor: '#4f6bab',
+        lineColor: '#6b7280',
+        secondaryColor: '#1e293b',
+        tertiaryColor: '#0f172a',
+        edgeLabelBackground: '#1e2130',
+        attributeBackgroundColorEven: '#1a2035',
+        attributeBackgroundColorOdd: '#222840'
+      }
+    });
+  </script>
+</body>
+</html>
