@@ -17,7 +17,7 @@ public class LookupController {
     private final LookupService lookupService;
 
     @GetMapping("/medical-sections")
-    @PreAuthorize("hasRole('CLERK')")
+    @PreAuthorize("hasAnyRole('CLERK','ADMIN')")
     public ResponseEntity<List<MedicalSectionResponse>> getMedicalSections() {
         return ResponseEntity.ok(lookupService.listMedicalSections());
     }

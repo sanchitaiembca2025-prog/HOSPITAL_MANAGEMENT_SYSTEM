@@ -31,6 +31,35 @@ public class PatientService {
     }
 
     @Transactional(readOnly = true)
+    public List<PatientResponse> listAllPatients() {
+        return patientRepository.findAll().stream()
+                .map(patient -> {
+                    List<PatientResponse.VisitSummary> summaries = patient.getVisits().stream()
+                            .map(v -> new PatientResponse.VisitSummary(
+                                    v.getVisitId(),
+                                    v.getIssue(),
+                                    v.getDoctor().getFullName(),
+                                    v.getEntryTime(),
+                                    v.getDischargeTime(),
+                                    v.getStatus().name(),
+                                    v.getInvoice() != null ? v.getInvoice().getInvoiceId() : null,
+                                    v.getInvoice() != null ? v.getInvoice().getTotalAmount() : null))
+                            .toList();
+                    return new PatientResponse(
+                            patient.getPatientId(),
+                            patient.getFirstName(),
+                            patient.getLastName(),
+                            patient.getPhone(),
+                            patient.getAddress(),
+                            patient.getGender(),
+                            patient.getAge(),
+                            patient.getRegisteredAt(),
+                            summaries);
+                })
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public PatientResponse getPatient(Long patientId) {
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found: " + patientId));

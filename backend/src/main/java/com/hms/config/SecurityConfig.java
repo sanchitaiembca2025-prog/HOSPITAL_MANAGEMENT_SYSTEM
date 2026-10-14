@@ -35,7 +35,7 @@ public class SecurityConfig {
             .headers(h -> h.frameOptions(f -> f.sameOrigin())) // allows H2 console iframe
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/login").permitAll()
+                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/medical-sections").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()  // H2 dev console
                 .anyRequest().authenticated()
             )

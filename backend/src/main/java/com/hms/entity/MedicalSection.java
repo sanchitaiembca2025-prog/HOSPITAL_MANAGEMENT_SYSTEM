@@ -1,13 +1,9 @@
 package com.hms.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "medical_sections")
-@Getter @Setter @NoArgsConstructor
 public class MedicalSection {
 
     @Id
@@ -16,4 +12,12 @@ public class MedicalSection {
 
     @Column(nullable = false, unique = true)
     private String sectionName;
+
+    public MedicalSection() {}
+
+    public Long getSectionId() { return sectionId; }
+    public void setSectionId(Long sectionId) { this.sectionId = sectionId; }
+
+    public String getSectionName() { return sectionName; }
+    public void setSectionName(String sectionName) { this.sectionName = sectionName; }
 }

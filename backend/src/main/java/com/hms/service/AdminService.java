@@ -8,6 +8,7 @@ import com.hms.exception.*;
 import com.hms.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,8 @@ import java.util.List;
 public class AdminService {
 
     private final UserRepository userRepository;
+    private final MedicalSectionRepository medicalSectionRepository;
+    private final PasswordEncoder passwordEncoder;
     private final TestCatalogueRepository testCatalogueRepository;
     private final EquipmentCatalogueRepository equipmentCatalogueRepository;
     private final ResourceCatalogueRepository resourceCatalogueRepository;
@@ -54,6 +57,35 @@ public class AdminService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
         user.setIsActive(req.isActive());
+    }
+
+    @Transactional
+    public PersonnelResponse createUser(CreateUserRequest req) {
+        if (req.role() == Role.ADMIN) {
+            throw new BusinessRuleException("Cannot create admin accounts through this endpoint");
+        }
+        if (userRepository.findByUsername(req.username()).isPresent()) {
+            throw new BusinessRuleException("Username '" + req.username() + "' is already taken");
+        }
+        User user = new User();
+        user.setFullName(req.fullName());
+        user.setUsername(req.username());
+        user.setPasswordHash(passwordEncoder.encode(req.password()));
+        user.setRole(req.role());
+        user.setPhone(req.phone());
+        user.setEmail(req.email());
+
+        if (req.role() == Role.DOCTOR) {
+            user.setConsultationFee(req.consultationFee());
+            if (req.sectionId() != null) {
+                MedicalSection section = medicalSectionRepository.findById(req.sectionId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Section not found: " + req.sectionId()));
+                user.setSection(section);
+            }
+        }
+
+        userRepository.save(user);
+        return toPersonnelResponse(user);
     }
 
     // ── Catalogue: Tests ───────────────────────────────────────────────────────

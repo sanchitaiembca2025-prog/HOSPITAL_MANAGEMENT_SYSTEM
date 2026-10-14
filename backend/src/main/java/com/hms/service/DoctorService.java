@@ -50,16 +50,18 @@ public class DoctorService {
     }
 
     @Transactional(readOnly = true)
-    public PatientResponse searchPatient(Long patientId) {
+    public PatientResponse searchPatient(Long patientId, String doctorUsername) {
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found: " + patientId));
 
         List<Visit> tipVisits = patient.getVisits().stream()
-                .filter(v -> v.getStatus() == VisitStatus.TREATMENT_IN_PROGRESS)
+                .filter(v -> v.getStatus() == VisitStatus.TREATMENT_IN_PROGRESS
+                          && v.getDoctor().getUsername().equals(doctorUsername))
                 .toList();
 
         if (tipVisits.isEmpty()) {
-            throw new BusinessRuleException("No active treatment visit found for patient: " + patientId);
+            throw new BusinessRuleException(
+                    "No active treatment visit assigned to you was found for patient: " + patientId);
         }
 
         List<PatientResponse.VisitSummary> summaries = tipVisits.stream()

@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -26,6 +27,12 @@ public class PatientController {
         Long patientId = patientService.registerPatient(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of("patientId", patientId, "message", "Patient registered successfully"));
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('CLERK','DOCTOR','LAB','ADMIN')")
+    public ResponseEntity<List<PatientResponse>> listAllPatients() {
+        return ResponseEntity.ok(patientService.listAllPatients());
     }
 
     @GetMapping("/{patientId}")

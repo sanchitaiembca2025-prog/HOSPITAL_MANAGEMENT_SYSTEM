@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +30,21 @@ public class VisitService {
     public Long createVisit(Long patientId, CreateVisitRequest req) {
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found: " + patientId));
+
+        List<Visit> existingVisits = patient.getVisits();
+
+        boolean hasDeceasedVisit = existingVisits.stream()
+                .anyMatch(v -> v.getStatus() == VisitStatus.DECEASED);
+        if (hasDeceasedVisit) {
+            throw new BusinessRuleException("Cannot create a new visit: patient has a deceased visit record");
+        }
+
+        boolean hasActiveVisit = existingVisits.stream()
+                .anyMatch(v -> v.getStatus() == VisitStatus.ADMITTED
+                        || v.getStatus() == VisitStatus.TREATMENT_IN_PROGRESS);
+        if (hasActiveVisit) {
+            throw new BusinessRuleException("Cannot create a new visit: patient already has an active visit");
+        }
 
         User doctor = userRepository.findById(req.doctorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not found: " + req.doctorId()));

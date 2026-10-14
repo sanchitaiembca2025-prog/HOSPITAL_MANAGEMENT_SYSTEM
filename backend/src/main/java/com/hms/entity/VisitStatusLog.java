@@ -2,16 +2,11 @@ package com.hms.entity;
 
 import com.hms.enums.VisitStatus;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "visit_status_log")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class VisitStatusLog {
 
     @Id
@@ -37,6 +32,8 @@ public class VisitStatusLog {
     @Column(nullable = false)
     private LocalDateTime changedAt;
 
+    public VisitStatusLog() {}
+
     public VisitStatusLog(Visit visit, VisitStatus from, VisitStatus to, User actedBy, LocalDateTime changedAt) {
         this.visit = visit;
         this.fromStatus = from;
@@ -44,4 +41,22 @@ public class VisitStatusLog {
         this.actedBy = actedBy;
         this.changedAt = changedAt;
     }
+
+    public Long getLogId() { return logId; }
+    public void setLogId(Long logId) { this.logId = logId; }
+
+    public Visit getVisit() { return visit; }
+    public void setVisit(Visit visit) { this.visit = visit; }
+
+    public VisitStatus getFromStatus() { return fromStatus; }
+    public void setFromStatus(VisitStatus fromStatus) { this.fromStatus = fromStatus; }
+
+    public VisitStatus getToStatus() { return toStatus; }
+    public void setToStatus(VisitStatus toStatus) { this.toStatus = toStatus; }
+
+    public User getActedBy() { return actedBy; }
+    public void setActedBy(User actedBy) { this.actedBy = actedBy; }
+
+    public LocalDateTime getChangedAt() { return changedAt; }
+    public void setChangedAt(LocalDateTime changedAt) { this.changedAt = changedAt; }
 }

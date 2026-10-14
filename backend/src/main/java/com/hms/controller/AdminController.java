@@ -23,6 +23,11 @@ public class AdminController {
 
     // ── Personnel ──────────────────────────────────────────────────────────────
 
+    @PostMapping("/personnel")
+    public ResponseEntity<PersonnelResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(adminService.createUser(request));
+    }
+
     @GetMapping("/personnel")
     public ResponseEntity<List<PersonnelResponse>> listPersonnel(@RequestParam Role role) {
         return ResponseEntity.ok(adminService.listPersonnel(role));

@@ -45,8 +45,6 @@ public class LabService {
         }
 
         boolean prescriptionReady = tipVisit.getPrescriptionPath() != null;
-        boolean canProceed = prescriptionReady;
-        String gateMessage = canProceed ? null : "Prescription not yet uploaded by doctor";
 
         return new LabPatientResponse(
                 patient.getPatientId(),
@@ -55,8 +53,8 @@ public class LabService {
                 tipVisit.getDoctor().getFullName(),
                 tipVisit.getVisitId(),
                 prescriptionReady,
-                canProceed,
-                gateMessage);
+                true,
+                null);
     }
 
     @Transactional
@@ -66,10 +64,6 @@ public class LabService {
 
         if (visit.getStatus() != VisitStatus.TREATMENT_IN_PROGRESS) {
             throw new BusinessRuleException("Lab costs can only be saved for active visits");
-        }
-
-        if (visit.getPrescriptionPath() == null) {
-            throw new BusinessRuleException("Prescription must be uploaded before saving lab costs");
         }
 
         Invoice invoice = invoiceRepository.findByVisitVisitId(visitId)

@@ -1,15 +1,11 @@
 package com.hms.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "equipment_catalogue")
-@Getter @Setter @NoArgsConstructor
 public class EquipmentCatalogue {
 
     @Id
@@ -24,4 +20,18 @@ public class EquipmentCatalogue {
 
     @Column(nullable = false)
     private Boolean isActive = true;
+
+    public EquipmentCatalogue() {}
+
+    public Long getEquipmentId() { return equipmentId; }
+    public void setEquipmentId(Long equipmentId) { this.equipmentId = equipmentId; }
+
+    public String getEquipmentName() { return equipmentName; }
+    public void setEquipmentName(String equipmentName) { this.equipmentName = equipmentName; }
+
+    public BigDecimal getCost() { return cost; }
+    public void setCost(BigDecimal cost) { this.cost = cost; }
+
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 }

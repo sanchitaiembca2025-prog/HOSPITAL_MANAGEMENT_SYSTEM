@@ -41,8 +41,10 @@ public class DoctorController {
 
     @GetMapping("/doctor/patients/{patientId}")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<PatientResponse> searchPatient(@PathVariable Long patientId) {
-        return ResponseEntity.ok(doctorService.searchPatient(patientId));
+    public ResponseEntity<PatientResponse> searchPatient(
+            @PathVariable Long patientId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(doctorService.searchPatient(patientId, userDetails.getUsername()));
     }
 
     @PostMapping("/visits/{visitId}/prescription")

@@ -1,10 +1,16 @@
 package com.hms.config;
 
+import com.hms.entity.EquipmentCatalogue;
 import com.hms.entity.MedicalSection;
+import com.hms.entity.ResourceCatalogue;
+import com.hms.entity.TestCatalogue;
 import com.hms.entity.User;
 import com.hms.entity.WardCategory;
 import com.hms.enums.Role;
+import com.hms.repository.EquipmentCatalogueRepository;
 import com.hms.repository.MedicalSectionRepository;
+import com.hms.repository.ResourceCatalogueRepository;
+import com.hms.repository.TestCatalogueRepository;
 import com.hms.repository.UserRepository;
 import com.hms.repository.WardCategoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +29,9 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final WardCategoryRepository wardCategoryRepository;
     private final MedicalSectionRepository medicalSectionRepository;
+    private final TestCatalogueRepository testCatalogueRepository;
+    private final EquipmentCatalogueRepository equipmentCatalogueRepository;
+    private final ResourceCatalogueRepository resourceCatalogueRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -30,6 +39,9 @@ public class DataInitializer implements CommandLineRunner {
         seedSections();
         seedWards();
         seedUsers();
+        seedTests();
+        seedEquipment();
+        seedResources();
         log.info("=== Seed data loaded. Login credentials below ===");
         log.info("  ADMIN  : admin / admin123");
         log.info("  DOCTOR : doctor1 / doctor123");
@@ -87,6 +99,100 @@ public class DataInitializer implements CommandLineRunner {
             MedicalSection s = new MedicalSection();
             s.setSectionName(name);
             medicalSectionRepository.save(s);
+        }
+    }
+
+    private void seedTests() {
+        if (testCatalogueRepository.count() > 0) return;
+        Object[][] tests = {
+            {"Complete Blood Count (CBC)",          150.00},
+            {"Blood Glucose (Fasting)",              80.00},
+            {"Blood Glucose (Post-Prandial)",        80.00},
+            {"Lipid Profile",                       250.00},
+            {"Liver Function Test (LFT)",           300.00},
+            {"Kidney Function Test (KFT)",          300.00},
+            {"Thyroid Function Test (TFT)",         350.00},
+            {"Urine Routine & Microscopy",          100.00},
+            {"Chest X-Ray",                         200.00},
+            {"ECG (Electrocardiogram)",             150.00},
+            {"Echocardiogram",                      800.00},
+            {"Ultrasound Abdomen",                  500.00},
+            {"MRI Brain",                          3000.00},
+            {"CT Scan Chest",                      2500.00},
+            {"HbA1c",                               200.00},
+            {"Serum Electrolytes",                  200.00},
+            {"Coagulation Profile (PT/APTT)",       250.00},
+            {"Blood Culture & Sensitivity",         400.00},
+            {"Urine Culture & Sensitivity",         350.00},
+            {"COVID-19 RT-PCR",                     500.00},
+        };
+        for (Object[] row : tests) {
+            TestCatalogue t = new TestCatalogue();
+            t.setTestName((String) row[0]);
+            t.setCost(java.math.BigDecimal.valueOf((Double) row[1]));
+            t.setIsAvailable(true);
+            testCatalogueRepository.save(t);
+        }
+    }
+
+    private void seedEquipment() {
+        if (equipmentCatalogueRepository.count() > 0) return;
+        Object[][] equipment = {
+            {"Ventilator (per day)",               1500.00},
+            {"Cardiac Monitor (per day)",           500.00},
+            {"Infusion Pump (per day)",             300.00},
+            {"Pulse Oximeter (per day)",            100.00},
+            {"Nebulizer (per session)",             150.00},
+            {"Defibrillator (per use)",            1000.00},
+            {"Suction Machine (per day)",           200.00},
+            {"ECG Machine (per use)",               150.00},
+            {"Dialysis Machine (per session)",     2500.00},
+            {"Phototherapy Unit (per day)",         400.00},
+            {"Oxygen Concentrator (per day)",       350.00},
+            {"Surgical Lights (per hour)",          200.00},
+            {"C-Arm Fluoroscopy (per use)",        1200.00},
+            {"Endoscope (per procedure)",          1500.00},
+            {"Laparoscopy Tower (per procedure)",  3000.00},
+        };
+        for (Object[] row : equipment) {
+            EquipmentCatalogue e = new EquipmentCatalogue();
+            e.setEquipmentName((String) row[0]);
+            e.setCost(java.math.BigDecimal.valueOf((Double) row[1]));
+            e.setIsActive(true);
+            equipmentCatalogueRepository.save(e);
+        }
+    }
+
+    private void seedResources() {
+        if (resourceCatalogueRepository.count() > 0) return;
+        Object[][] resources = {
+            {"Surgical Gloves (pair)",               20.00},
+            {"Sterile Gauze (pack)",                 30.00},
+            {"IV Cannula",                           50.00},
+            {"IV Fluid NS 500 ml",                   60.00},
+            {"IV Fluid RL 500 ml",                   60.00},
+            {"Syringe 5 ml",                         10.00},
+            {"Syringe 10 ml",                        12.00},
+            {"Urine Catheter (Foley)",               80.00},
+            {"Nasogastric Tube",                     70.00},
+            {"Oxygen Mask",                          50.00},
+            {"Surgical Blade",                       25.00},
+            {"Suture Pack (absorbable)",            120.00},
+            {"Suture Pack (non-absorbable)",        100.00},
+            {"Blood Collection Tube Set",            40.00},
+            {"Wound Dressing Kit",                   90.00},
+            {"Disposable Gown",                      35.00},
+            {"Face Mask (N95)",                      40.00},
+            {"Plaster of Paris (roll)",              80.00},
+            {"Stool Bag (colostomy)",               150.00},
+            {"Central Line Kit",                    500.00},
+        };
+        for (Object[] row : resources) {
+            ResourceCatalogue r = new ResourceCatalogue();
+            r.setResourceName((String) row[0]);
+            r.setCostPerUnit(java.math.BigDecimal.valueOf((Double) row[1]));
+            r.setIsActive(true);
+            resourceCatalogueRepository.save(r);
         }
     }
 }
