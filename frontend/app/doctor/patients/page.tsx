@@ -10,19 +10,25 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { usePatients } from "@/hooks/use-patient"
+import { useDoctorProfile } from "@/hooks/use-doctor"
 import { formatDate } from "@/lib/utils"
 import { Users, AlertCircle } from "lucide-react"
-import { VisitStatus, PatientResponse } from "@/types"
+import { VisitStatus } from "@/types"
 
 export default function DoctorPatientSearchPage() {
   const [query, setQuery] = useState("")
 
   const { data: patients = [], isLoading, isError } = usePatients()
+  const { data: profile } = useDoctorProfile()
 
-  // Show only patients who have a TIP visit (active patients for doctor to manage)
+  // Show only patients who have a TIP visit assigned to this doctor
   const tipPatients = useMemo(
-    () => patients.filter((p) => p.visits.some((v) => v.status === VisitStatus.TREATMENT_IN_PROGRESS)),
-    [patients]
+    () => patients.filter((p) =>
+      p.visits.some(
+        (v) => v.status === VisitStatus.TREATMENT_IN_PROGRESS && v.doctorName === profile?.fullName
+      )
+    ),
+    [patients, profile]
   )
 
   const filtered = useMemo(() => {

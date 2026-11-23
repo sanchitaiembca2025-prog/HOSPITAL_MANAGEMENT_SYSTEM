@@ -163,14 +163,14 @@ export default function SignupPage() {
                 {/* Full Name */}
                 <div className="space-y-1">
                   <Label htmlFor="fullName">Full Name *</Label>
-                  <Input id="fullName" {...register("fullName")} placeholder="Dr. John Smith" />
+                  <Input id="fullName" {...register("fullName")} />
                   {errors.fullName && <p className="text-xs text-danger-500">{errors.fullName.message}</p>}
                 </div>
 
                 {/* Username */}
                 <div className="space-y-1">
                   <Label htmlFor="username">Username *</Label>
-                  <Input id="username" {...register("username")} placeholder="john.smith" autoComplete="username" />
+                  <Input id="username" {...register("username")} autoComplete="username" />
                   {errors.username && <p className="text-xs text-danger-500">{errors.username.message}</p>}
                 </div>
 
@@ -192,12 +192,12 @@ export default function SignupPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label htmlFor="phone">Phone</Label>
-                    <Input id="phone" {...register("phone")} placeholder="9876543210" />
+                    <Input id="phone" {...register("phone")} />
                     {errors.phone && <p className="text-xs text-danger-500">{errors.phone.message}</p>}
                   </div>
                   <div className="space-y-1">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" {...register("email")} placeholder="you@hospital.in" />
+                    <Input id="email" type="email" {...register("email")} />
                     {errors.email && <p className="text-xs text-danger-500">{errors.email.message}</p>}
                   </div>
                 </div>
@@ -234,7 +234,6 @@ export default function SignupPage() {
                           min={0}
                           step={50}
                           {...register("consultationFee")}
-                          placeholder="500"
                         />
                         {(errors as any).consultationFee && (
                           <p className="text-xs text-danger-500">{(errors as any).consultationFee.message}</p>

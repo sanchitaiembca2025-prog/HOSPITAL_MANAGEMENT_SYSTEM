@@ -33,7 +33,7 @@ export default function RegisterPatientPage() {
   const mutation = useRegisterPatient()
   const [newPatientId, setNewPatientId] = useState<number | null>(null)
 
-  const { register, handleSubmit, formState: { errors }, setValue } = useForm<FormValues>({
+  const { register, handleSubmit, formState: { errors }, setValue, reset } = useForm<FormValues>({
     resolver: zodResolver(schema),
   })
 
@@ -70,7 +70,7 @@ export default function RegisterPatientPage() {
                   >
                     View Patient
                   </Button>
-                  <Button variant="outline" onClick={() => setNewPatientId(null)}>
+                  <Button variant="outline" onClick={() => { setNewPatientId(null); reset() }}>
                     Register Another
                   </Button>
                 </div>

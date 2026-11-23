@@ -27,8 +27,9 @@ public class InvoiceService {
         Visit visit = visitRepository.findById(visitId)
                 .orElseThrow(() -> new ResourceNotFoundException("Visit not found: " + visitId));
 
-        if (visit.getStatus() != VisitStatus.TREATMENT_IN_PROGRESS) {
-            throw new BusinessRuleException("Invoice can only be generated for visits in TREATMENT_IN_PROGRESS state");
+        if (visit.getStatus() != VisitStatus.TREATMENT_IN_PROGRESS
+                && visit.getStatus() != VisitStatus.DECEASED) {
+            throw new BusinessRuleException("Invoice can only be generated for visits in TREATMENT_IN_PROGRESS or DECEASED state");
         }
 
         if (invoiceRepository.findByVisitVisitId(visitId).isPresent()) {
@@ -64,17 +65,20 @@ public class InvoiceService {
         invoice.setPaymentStatus(PaymentStatus.PAID);
 
         VisitStatus prev = visit.getStatus();
-        visit.setStatus(VisitStatus.DISCHARGED);
-        visit.setDischargeTime(LocalDateTime.now());
+        // Deceased visits remain DECEASED after payment; only active visits move to DISCHARGED
+        if (prev != VisitStatus.DECEASED) {
+            visit.setStatus(VisitStatus.DISCHARGED);
+            visit.setDischargeTime(LocalDateTime.now());
 
-        if (visit.getWardCategory() != null) {
-            WardCategory ward = wardCategoryRepository.findByIdWithLock(visit.getWardCategory().getCategoryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Ward not found"));
-            ward.setAvailableBeds(ward.getAvailableBeds() + 1);
+            if (visit.getWardCategory() != null) {
+                WardCategory ward = wardCategoryRepository.findByIdWithLock(visit.getWardCategory().getCategoryId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Ward not found"));
+                ward.setAvailableBeds(ward.getAvailableBeds() + 1);
+            }
+
+            visitStatusLogRepository.save(new VisitStatusLog(
+                    visit, prev, VisitStatus.DISCHARGED, actingUser, LocalDateTime.now()));
         }
-
-        visitStatusLogRepository.save(new VisitStatusLog(
-                visit, prev, VisitStatus.DISCHARGED, actingUser, LocalDateTime.now()));
 
         return new java.util.LinkedHashMap<>() {{
             put("visitId", visit.getVisitId());

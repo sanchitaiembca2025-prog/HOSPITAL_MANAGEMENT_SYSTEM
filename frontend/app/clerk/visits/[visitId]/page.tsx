@@ -54,7 +54,7 @@ export default function VisitDetailPage() {
   }
 
   const canAdmit = visit.status === VisitStatus.ADMITTED
-  const canGenerate = visit.status === VisitStatus.TREATMENT_IN_PROGRESS && !invoice
+  const canGenerate = (visit.status === VisitStatus.TREATMENT_IN_PROGRESS || visit.status === VisitStatus.DECEASED) && !invoice
   const canPay = invoice && invoice.paymentStatus === PaymentStatus.PENDING
 
   const handleAdmit = () => {
@@ -201,7 +201,7 @@ export default function VisitDetailPage() {
             description={
               canGenerate
                 ? "The visit is complete. Generate an invoice to bill the patient."
-                : "Invoice can be generated once the visit is admitted and in Treatment In Progress."
+                : "Invoice can be generated once the visit is admitted and in Treatment In Progress, or after the patient is marked Deceased."
             }
           />
         )}
