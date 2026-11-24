@@ -17,4 +17,6 @@ public record VisitResponse(
         LocalDateTime entryTime,
         LocalDateTime dischargeTime,
         Boolean prescriptionReady,
-        LocalDateTime prescriptionUploadedAt) {}
+        LocalDateTime prescriptionUploadedAt,
+        Boolean testResultReady,
+        LocalDateTime testResultUploadedAt) {}

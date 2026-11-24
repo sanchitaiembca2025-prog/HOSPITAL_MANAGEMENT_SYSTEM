@@ -11,7 +11,7 @@ import { EmptyState } from "@/components/hms/EmptyState"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useVisit, useVisitInvoice, useAdmitVisit, useGenerateInvoice, usePayInvoice } from "@/hooks/use-visit"
+import { useVisit, useVisitInvoice, useAdmitVisit, useGenerateInvoice, usePayInvoice, openVisitFile } from "@/hooks/use-visit"
 import { formatDateTime } from "@/lib/utils"
 import { toast } from "sonner"
 import {
@@ -32,6 +32,19 @@ export default function VisitDetailPage() {
   const [admitOpen, setAdmitOpen] = useState(false)
   const [generateOpen, setGenerateOpen] = useState(false)
   const [payOpen, setPayOpen] = useState(false)
+
+  const [docLoading, setDocLoading] = useState<string | null>(null)
+
+  const handleOpenFile = async (type: "prescription" | "test-result") => {
+    setDocLoading(type)
+    try {
+      await openVisitFile(visit!.visitId, type)
+    } catch {
+      toast.error("Failed to load file")
+    } finally {
+      setDocLoading(null)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -175,13 +188,41 @@ export default function VisitDetailPage() {
                 <VisitStatusBadge status={visit.status} />
               </div>
             </div>
+          </div>
 
-            <div className="flex items-start gap-2">
-              <FileText className="h-4 w-4 text-neutral-400 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-neutral-500 text-xs">Prescription</p>
-                <p className="text-neutral-800">{visit.prescriptionReady ? "Ready" : "Pending"}</p>
-              </div>
+          {/* Documents */}
+          <div className="mt-5 pt-5 border-t border-neutral-100 flex flex-wrap gap-3">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-neutral-400 shrink-0" />
+              <span className="text-xs text-neutral-500">Prescription:</span>
+              {visit.prescriptionReady ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={docLoading === "prescription"}
+                  onClick={() => handleOpenFile("prescription")}
+                >
+                  {docLoading === "prescription" ? "Opening…" : "View Prescription"}
+                </Button>
+              ) : (
+                <span className="text-xs text-neutral-400 italic">Not uploaded yet</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-neutral-400 shrink-0" />
+              <span className="text-xs text-neutral-500">Test Result:</span>
+              {visit.testResultReady ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={docLoading === "test-result"}
+                  onClick={() => handleOpenFile("test-result")}
+                >
+                  {docLoading === "test-result" ? "Opening…" : "View Test Result"}
+                </Button>
+              ) : (
+                <span className="text-xs text-neutral-400 italic">Not uploaded yet</span>
+              )}
             </div>
           </div>
         </CardContent>

@@ -1,5 +1,9 @@
 package com.hms.config;
 
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
 import com.hms.entity.EquipmentCatalogue;
 import com.hms.entity.MedicalSection;
 import com.hms.entity.ResourceCatalogue;
@@ -13,15 +17,11 @@ import com.hms.repository.ResourceCatalogueRepository;
 import com.hms.repository.TestCatalogueRepository;
 import com.hms.repository.UserRepository;
 import com.hms.repository.WardCategoryRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Profile;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 
 @Component
-@Profile("dev")
 @RequiredArgsConstructor
 @Slf4j
 public class DataInitializer implements CommandLineRunner {
@@ -47,20 +47,24 @@ public class DataInitializer implements CommandLineRunner {
         log.info("  DOCTOR : doctor1 / doctor123");
         log.info("  CLERK  : clerk1 / clerk123");
         log.info("  LAB    : lab1 / lab123");
-        log.info("  H2 console → http://localhost:8080/h2-console  JDBC URL: jdbc:h2:mem:hmsdb");
+        log.info("  H2 console (dev profile only) → http://localhost:8080/h2-console");
     }
 
     private void seedUsers() {
-        if (userRepository.count() > 0) return;
-
         MedicalSection cardiology = medicalSectionRepository.findAll().stream()
                 .filter(s -> s.getSectionName().equals("Cardiology"))
                 .findFirst().orElseThrow();
 
-        userRepository.save(createUser("Admin User", "admin",   "admin123",  Role.ADMIN,  null, null, null,        null));
-        userRepository.save(createUser("Dr. Mehta",  "doctor1", "doctor123", Role.DOCTOR, 500.0, "9876500001", "drmetha@hms.in", cardiology));
-        userRepository.save(createUser("Alice Roy",  "clerk1",  "clerk123",  Role.CLERK,  null, "9876500002", "alice@hms.in",   null));
-        userRepository.save(createUser("Lab Tech",   "lab1",    "lab123",    Role.LAB,    null, "9876500003", "lab@hms.in",     null));
+        saveIfAbsent("admin",   () -> createUser("Admin User", "admin",   "admin123",  Role.ADMIN,  null,  null,            null,            null));
+        saveIfAbsent("doctor1", () -> createUser("Dr. Mehta",  "doctor1", "doctor123", Role.DOCTOR, 500.0, "9876500001", "drmetha@hms.in", cardiology));
+        saveIfAbsent("clerk1",  () -> createUser("Alice Roy",  "clerk1",  "clerk123",  Role.CLERK,  null,  "9876500002", "alice@hms.in",   null));
+        saveIfAbsent("lab1",    () -> createUser("Lab Tech",   "lab1",    "lab123",    Role.LAB,    null,  "9876500003", "lab@hms.in",     null));
+    }
+
+    private void saveIfAbsent(String username, java.util.function.Supplier<User> supplier) {
+        if (userRepository.findByUsername(username).isEmpty()) {
+            userRepository.save(supplier.get());
+        }
     }
 
     private User createUser(String fullName, String username, String rawPassword,

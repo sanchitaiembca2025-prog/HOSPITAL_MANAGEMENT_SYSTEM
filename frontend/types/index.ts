@@ -79,6 +79,8 @@ export interface VisitResponse {
   dischargeTime: string | null
   prescriptionReady: boolean
   prescriptionUploadedAt: string | null
+  testResultReady: boolean
+  testResultUploadedAt: string | null
 }
 
 export interface InvoiceResponse {

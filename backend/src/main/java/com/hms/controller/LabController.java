@@ -10,7 +10,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Map;
 
@@ -42,7 +41,7 @@ public class LabController {
     @PreAuthorize("hasRole('LAB')")
     public ResponseEntity<Map<String, String>> uploadTestResult(
             @PathVariable Long visitId,
-            @RequestParam("file") MultipartFile file) throws IOException {
+            @RequestParam("file") MultipartFile file) {
         labService.uploadTestResult(visitId, file);
         return ResponseEntity.ok(Map.of("message", "Test result uploaded"));
     }

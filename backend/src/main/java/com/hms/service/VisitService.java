@@ -1,5 +1,6 @@
 package com.hms.service;
 
+import com.hms.config.FileStorageConfig;
 import com.hms.dto.request.CreateVisitRequest;
 import com.hms.dto.response.VisitResponse;
 import com.hms.entity.*;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,6 +28,7 @@ public class VisitService {
     private final WardCategoryRepository wardCategoryRepository;
     private final VisitStatusLogRepository visitStatusLogRepository;
     private final InvoiceRepository invoiceRepository;
+    private final FileStorageConfig fileStorageConfig;
 
     @Transactional
     public Long createVisit(Long patientId, CreateVisitRequest req) {
@@ -119,6 +123,28 @@ public class VisitService {
                 v.getEntryTime(),
                 v.getDischargeTime(),
                 v.getPrescriptionPath() != null,
-                v.getPrescriptionUploadedAt());
+                v.getPrescriptionUploadedAt(),
+                v.getTestResultPath() != null,
+                v.getTestResultUploadedAt());
+    }
+
+    @Transactional(readOnly = true)
+    public java.nio.file.Path getPrescriptionFile(Long visitId) {
+        Visit visit = visitRepository.findById(visitId)
+                .orElseThrow(() -> new ResourceNotFoundException("Visit not found: " + visitId));
+        if (visit.getPrescriptionPath() == null) {
+            throw new ResourceNotFoundException("No prescription uploaded for visit: " + visitId);
+        }
+        return fileStorageConfig.load(visit.getPrescriptionPath());
+    }
+
+    @Transactional(readOnly = true)
+    public java.nio.file.Path getTestResultFile(Long visitId) {
+        Visit visit = visitRepository.findById(visitId)
+                .orElseThrow(() -> new ResourceNotFoundException("Visit not found: " + visitId));
+        if (visit.getTestResultPath() == null) {
+            throw new ResourceNotFoundException("No test result uploaded for visit: " + visitId);
+        }
+        return fileStorageConfig.load(visit.getTestResultPath());
     }
 }

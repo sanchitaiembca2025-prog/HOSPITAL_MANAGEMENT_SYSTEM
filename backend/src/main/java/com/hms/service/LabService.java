@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -106,7 +107,7 @@ public class LabService {
     }
 
     @Transactional
-    public void uploadTestResult(Long visitId, MultipartFile file) throws IOException {
+    public void uploadTestResult(Long visitId, MultipartFile file) {
         Visit visit = visitRepository.findById(visitId)
                 .orElseThrow(() -> new ResourceNotFoundException("Visit not found: " + visitId));
 
@@ -114,6 +115,12 @@ public class LabService {
             throw new BusinessRuleException("Test results can only be uploaded for active visits");
         }
 
-        fileStorageConfig.store(file, "test-results/" + visitId);
+        try {
+            String path = fileStorageConfig.store(file, "test-results/" + visitId);
+            visit.setTestResultPath(path);
+            visit.setTestResultUploadedAt(LocalDateTime.now());
+        } catch (IOException e) {
+            throw new BusinessRuleException("Failed to save test result file: " + e.getMessage());
+        }
     }
 }

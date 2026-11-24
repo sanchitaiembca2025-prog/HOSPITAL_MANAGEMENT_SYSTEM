@@ -35,4 +35,8 @@ public class FileStorageConfig {
 
         return subdir + "/" + filename;
     }
+
+    public Path load(String relativePath) {
+        return Paths.get(storagePath).resolve(relativePath).normalize();
+    }
 }

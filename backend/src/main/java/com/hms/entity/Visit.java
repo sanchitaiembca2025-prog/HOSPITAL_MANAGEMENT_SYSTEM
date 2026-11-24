@@ -45,6 +45,9 @@ public class Visit {
     private String prescriptionPath;
     private LocalDateTime prescriptionUploadedAt;
 
+    private String testResultPath;
+    private LocalDateTime testResultUploadedAt;
+
     private String postMortemPath;
     private String causeOfDeath;
     private LocalDateTime timeOfDeath;
@@ -86,6 +89,12 @@ public class Visit {
 
     public LocalDateTime getPrescriptionUploadedAt() { return prescriptionUploadedAt; }
     public void setPrescriptionUploadedAt(LocalDateTime prescriptionUploadedAt) { this.prescriptionUploadedAt = prescriptionUploadedAt; }
+
+    public String getTestResultPath() { return testResultPath; }
+    public void setTestResultPath(String testResultPath) { this.testResultPath = testResultPath; }
+
+    public LocalDateTime getTestResultUploadedAt() { return testResultUploadedAt; }
+    public void setTestResultUploadedAt(LocalDateTime testResultUploadedAt) { this.testResultUploadedAt = testResultUploadedAt; }
 
     public String getPostMortemPath() { return postMortemPath; }
     public void setPostMortemPath(String postMortemPath) { this.postMortemPath = postMortemPath; }

@@ -7,13 +7,17 @@ import com.hms.repository.UserRepository;
 import com.hms.service.VisitService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.Path;
 import java.util.Map;
 
 @RestController
@@ -30,7 +34,7 @@ public class VisitController {
             @PathVariable Long patientId,
             @Valid @RequestBody CreateVisitRequest request) {
         Long visitId = visitService.createVisit(patientId, request);
-        return ResponseEntity.status(HttpStatus.CREATED)
+        return ResponseEntity.status(201)
                 .body(Map.of("visitId", visitId, "status", "ADMITTED"));
     }
 
@@ -51,5 +55,29 @@ public class VisitController {
     @PreAuthorize("hasAnyRole('CLERK','DOCTOR','LAB')")
     public ResponseEntity<VisitResponse> getVisit(@PathVariable Long visitId) {
         return ResponseEntity.ok(visitService.getVisit(visitId));
+    }
+
+    @GetMapping("/visits/{visitId}/prescription")
+    @PreAuthorize("hasAnyRole('CLERK','DOCTOR','LAB','ADMIN')")
+    public ResponseEntity<Resource> downloadPrescription(@PathVariable Long visitId) throws Exception {
+        Path file = visitService.getPrescriptionFile(visitId);
+        Resource resource = new UrlResource(file.toUri());
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"prescription-visit-" + visitId + ".pdf\"")
+                .body(resource);
+    }
+
+    @GetMapping("/visits/{visitId}/test-result")
+    @PreAuthorize("hasAnyRole('CLERK','DOCTOR','LAB','ADMIN')")
+    public ResponseEntity<Resource> downloadTestResult(@PathVariable Long visitId) throws Exception {
+        Path file = visitService.getTestResultFile(visitId);
+        Resource resource = new UrlResource(file.toUri());
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"test-result-visit-" + visitId + ".pdf\"")
+                .body(resource);
     }
 }

@@ -81,3 +81,10 @@ export function usePayInvoice() {
     },
   })
 }
+
+export async function openVisitFile(visitId: number, type: "prescription" | "test-result") {
+  const res = await api.get(`/visits/${visitId}/${type}`, { responseType: "blob" })
+  const url = URL.createObjectURL(res.data)
+  window.open(url, "_blank")
+  setTimeout(() => URL.revokeObjectURL(url), 60_000)
+}
