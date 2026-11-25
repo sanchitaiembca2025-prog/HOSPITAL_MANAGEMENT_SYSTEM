@@ -210,7 +210,7 @@ export default function DoctorPatientDetailPage() {
                                 size="sm"
                                 onClick={() => setPrescriptionVisitId(v.visitId)}
                               >
-                                <Upload className="h-3 w-3 mr-1" /> Rx
+                                <Upload className="h-3 w-3 mr-1" /> Upload
                               </Button>
                               <Button
                                 variant="ghost"

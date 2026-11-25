@@ -13,7 +13,6 @@ import {
   Wrench,
   Package,
   GraduationCap,
-  BarChart3,
   UserPlus,
   Search,
   ClipboardList,
@@ -36,7 +35,6 @@ const NAV_CONFIG: Record<Role, NavItem[]> = {
     { label: "Equipment", href: "/admin/catalogue/equipment", icon: Wrench },
     { label: "Resources", href: "/admin/catalogue/resources", icon: Package },
     { label: "Seminars", href: "/admin/seminars", icon: GraduationCap },
-    { label: "Reports", href: "/admin/reports", icon: BarChart3 },
   ],
   [Role.CLERK]: [
     { label: "Dashboard", href: "/clerk", icon: LayoutDashboard },

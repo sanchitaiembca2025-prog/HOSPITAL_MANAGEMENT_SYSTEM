@@ -99,7 +99,28 @@ public class DataInitializer implements CommandLineRunner {
 
     private void seedSections() {
         if (medicalSectionRepository.count() > 0) return;
-        for (String name : new String[]{"Cardiology", "Neurology", "Orthopedics", "General"}) {
+        for (String name : new String[]{
+                "Cardiology",
+                "Neurology",
+                "Orthopedics",
+                "General",
+                "Oncology",
+                "Pediatrics",
+                "Gynecology & Obstetrics",
+                "Dermatology",
+                "Psychiatry",
+                "Pulmonology",
+                "Nephrology",
+                "Gastroenterology",
+                "Endocrinology",
+                "Ophthalmology",
+                "ENT (Ear, Nose & Throat)",
+                "Urology",
+                "Hematology",
+                "Rheumatology",
+                "Emergency & Trauma",
+                "Anesthesiology"
+        }) {
             MedicalSection s = new MedicalSection();
             s.setSectionName(name);
             medicalSectionRepository.save(s);

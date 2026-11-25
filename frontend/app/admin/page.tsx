@@ -5,7 +5,7 @@ import { useMemo } from "react"
 import { PageHeader } from "@/components/hms/PageHeader"
 import { usePatients } from "@/hooks/use-patient"
 import { VisitStatus } from "@/types"
-import { Users, Activity, UserCheck, BedDouble, ArrowRight, ClipboardList, BarChart3, GraduationCap } from "lucide-react"
+import { Users, Activity, UserCheck, BedDouble, ArrowRight, ClipboardList, GraduationCap } from "lucide-react"
 
 const statusStyle: Record<string, string> = {
   ADMITTED:                "bg-warning-50 text-warning-700",
@@ -44,7 +44,6 @@ export default function AdminDashboard() {
     { href: "/admin/wards",             label: "Wards",            icon: BedDouble },
     { href: "/admin/catalogue/tests",   label: "Tests Catalogue",  icon: ClipboardList },
     { href: "/admin/seminars",          label: "Seminars",         icon: GraduationCap },
-    { href: "/admin/reports",           label: "Reports",          icon: BarChart3 },
   ]
 
   return (
